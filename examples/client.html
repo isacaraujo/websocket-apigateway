@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebSocket example</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      #app {
+        margin: 20px auto 0;
+        border: 1px solid black;
+        height: calc(100vh - 32px);
+        width: 320px;
+      }
+      #headers {
+        width: 100%;
+        height: 45px;
+        text-align: center;
+      }
+      #messages {
+        height: calc(100% - 90px);
+        width: 100%;
+        overflow-y: scroll;
+        display: block;
+        list-style: none;
+        float: left;
+        padding: 0;
+        margin: 0;
+      }
+      #messages li {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: inline-block;
+        float: left;
+        width: 100%;
+      }
+      #send {
+        width: 100%;
+        height: 45px;
+        float: left;
+      }
+      .failed {
+        color: red;
+      }
+    </style>
+    <script
+      src="https://code.jquery.com/jquery-3.5.1.slim.js"
+      integrity="sha256-DrT5NfxfbHvMHux31Lkhxg42LY6of8TaYyK50jnxRnM="
+      crossorigin="anonymous"></script>
+  </head>
+
+  <body>
+      <div id="app">
+        <div id="headers">
+          <button id="bt_connect">Connect</button>
+          <button id="bt_disconnect">Disconnect</button>
+        </div>
+        <ul id="messages">
+        </ul>
+        <div id="send">
+          <input type="text" id="messageme" />
+          <button id="clickme">Send</button>
+        </div>
+      </div>
+      <script>
+      const websocketUri = 'ws://localhost:6262/ws?authToken=1baeb273-c8b1-45a3-841d-7da6c2ff8457';
+
+      function sendmessage(socket, msg) {
+        socket.send(JSON.stringify({action: 'sendmessage', data: msg}));
+        $('#messages').append('<li>' + msg + '</li>');
+        $('#messageme').val('');
+      }
+      function bind(socket) {
+        socket.addEventListener('open', function (event) {
+          sendmessage(socket, 'peer connected');
+        });
+        socket.addEventListener('message', function (event) {
+          console.log('Message from server ', event.data);
+          $('#messages').append('<li>Received: ' + event.data + '</li>');
+        });
+        socket.addEventListener('close', function (event) {
+          console.log('Message from server ', event.data);
+          $('#messages').append('<li>peer disconnected</li>');
+        });
+        socket.addEventListener('error', function (event) {
+          console.error(event);
+          $('#messages').append('<li class="failed">connection failed</li>');
+        });
+      }
+      function bootstrap() {
+        let socket;
+        $('#clickme').on('click', () => {
+          if (!socket) return;
+          const msg = $('#messageme').val();
+          sendmessage(socket, msg);
+        });
+        $('#bt_connect').on('click', () => {
+          socket = new WebSocket(websocketUri);
+          bind(socket);
+        });
+        $('#bt_disconnect').on('click', () => {
+          if (!socket) return;
+          socket.close();
+          socket = null;
+        });
+      }
+      document.addEventListener("DOMContentLoaded", () => {
+        bootstrap();  
+      });
+      </script>
+  </body>
+</html>
