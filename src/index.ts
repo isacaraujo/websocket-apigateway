@@ -73,9 +73,13 @@ app.post(`${STAGE_PATH}/@connections/:connectionid`, bodyParser.raw({ type: '*/*
     console.info(new Date(), `[${connectionid}]`, 'postToConnection', utf8Payload, 'client not found');
 
     res
-      .status(200)
+      .status(403)
       .append('Content-Type', 'application/json')
-      .end('{}');
+      .end(JSON.stringify({
+        error: {
+          message: 'Connection not found'
+        }
+      }));
 
     return;
   }
